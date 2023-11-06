@@ -56,8 +56,15 @@
     <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scrips\PlayerMove.cs" />
+    <Compile Include="Assets\Scrips\CustomGameObject.cs" />
+    <Compile Include="Assets\Scrips\Player.cs" />
+    <Compile Include="Assets\Scrips\Spawner.cs" />
+    <Compile Include="Assets\Scrips\IGameInfo.cs" />
     <Compile Include="Assets\Scrips\Bullet.cs" />
+    <Compile Include="Assets\Scrips\BulletLifetime.cs" />
+    <Compile Include="Assets\Scrips\GameManager.cs" />
+    <Compile Include="Assets\Scrips\Enemy.cs" />
+    <Compile Include="Assets\Scrips\Enemy2.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
