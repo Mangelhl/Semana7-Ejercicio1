@@ -2,197 +2,113 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using System;
+using UnityEngine.SceneManagement;
 
-public class Player : CustomGameObject, IGameInfo
+public class Player : GameCharacter
 {
-    public Vector3 Direction { get; set; }
-    public int Health { get; set; }
-    public int Level { get; set; }
-    public float FireRate { get; set; }
-    public float MovementSpeed { get; set; } = 5.0f;
+    public Text playerNameText;
+    public Text playerStatsText;
 
-    public Transform bulletSpawnPoint;
-    public float bulletForce = 10.0f;
-    public GameObject bulletPrefab;
+    public Situation1 situation1;
+    public Situation2 situation2;
+    public Situation3 situation3;
 
-    private Rigidbody rb;    
-
-    public Text levelText;
-    public Text timeText;
-    public Text enemiesKilledText;
-    public Text playerHealthText;
-
-    private int enemiesKilled = 0;
+    int finalesAlcanzados = 0;
 
     void Start()
     {
-        StartGame();
-        rb = GetComponent<Rigidbody>();
-        rb.freezeRotation = true;
-
-        StartCoroutine(LevelUpAutomatically());
+        CreateCharacter(30, 30, 40);
+        UpdateInfo();
     }
 
-    void StartGame()
+    void Update()
     {
-        Level = 1;
-        Health = 20;
-        UpdateInfo(Level, 10, 0, Health);
-    }
-
-    private IEnumerator LevelUpAutomatically()
-    {
-        while (true)
+        if (Life <= 0)
         {
-            yield return new WaitForSeconds(1.0f);
-
-            int currentTime = int.Parse(timeText.text.Split(' ')[1]);
-
-            if (currentTime > 0)
-            {
-                currentTime--;
-            }
-
-            UpdateInfo(Level, currentTime, enemiesKilled, Health);
-
-            if (currentTime == 0)
-            {
-                if (Level < 10)
-                {
-                    LevelUp();
-                }
-            }
-        }
-    }
-
-    public override void Update()
-    {
-        UpdateMovement();
-
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Shoot();
-        }
-
-        Collider[] hitColliders = Physics.OverlapBox(this.Position, new Vector3(1.0f, 1.0f, 1.0f));
-
-        foreach (var hitCollider in hitColliders)
-        {
-            if (hitCollider.gameObject.CompareTag("Enemy"))
-            {
-                Enemy enemy = hitCollider.gameObject.GetComponent<Enemy>();
-                if (enemy != null)
-                {
-                    Health -= enemy.Damage;
-                }
-            }
-
-            else if (hitCollider.gameObject.CompareTag("Enemy2"))
-            {
-                Enemy2 enemy2 = hitCollider.gameObject.GetComponent<Enemy2>();
-                if (enemy2 != null)
-                {
-                    Health -= enemy2.Damage;
-                }
-            }
-        }
-        if (enemiesKilled >= 100 || Level >= 10)
-        {
-            Debug.Log("¡El jugador ha ganado!");
-        }
-    }
-
-    public void Shoot()
-    {
-        GameObject bulletObject = Instantiate(bulletPrefab, bulletSpawnPoint.position, Quaternion.identity);
-        Bullet bullet = bulletObject.GetComponent<Bullet>();
-        bullet.Direction = this.Direction;
-        bullet.Damage = 5;
-
-        Rigidbody bulletRb = bulletObject.GetComponent<Rigidbody>();
-        bulletRb.velocity = bulletSpawnPoint.forward * bulletForce;
-
-        Collider[] hitColliders = Physics.OverlapBox(bullet.Position, new Vector3(1.0f, 1.0f, 1.0f));
-
-        foreach (var hitCollider in hitColliders)
-        {
-            if (hitCollider.gameObject.CompareTag("Enemy"))
-            {
-                Enemy enemy = hitCollider.gameObject.GetComponent<Enemy>();
-                if (enemy != null)
-                {
-                    enemy.TakeDamage(bullet.Damage);
-                    bullet.Destroy();
-                    return;
-                }
-            }
-            else if (hitCollider.gameObject.CompareTag("Enemy2"))
-            {
-                Enemy2 enemy2 = hitCollider.gameObject.GetComponent<Enemy2>();
-                if (enemy2 != null)
-                {
-                    enemy2.TakeDamage(bullet.Damage);
-                    bullet.Destroy();
-                    return;
-                }
-            }
-        }
-    }
-
-    public void UpdateMovement()
-    {
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
-
-        Vector3 movement = new Vector3(horizontal, 0, vertical).normalized * this.MovementSpeed * Time.deltaTime;
-
-        rb.MovePosition(transform.position + movement);
-    }
-
-    public void UpdateInfo(int level, int time, int enemiesKilled, int playerHealth)
-    {
-        levelText.text = "Nivel: " + level.ToString();
-        timeText.text = "Tiempo: " + time.ToString() + " segundos";
-        enemiesKilledText.text = "Enemigos abatidos: " + enemiesKilled.ToString();
-        playerHealthText.text = "Vida: " + playerHealth.ToString();
-    }
-
-    public void TakeDamage(int damage)
-    {
-        Health -= damage;
-
-        if (Health <= 0)
-        {
-            Debug.Log("El jugador se quedó sin vida.");
-            Destroy();
-        }
-    }
-
-    public void LevelUp()
-    {
-        Level++;
-        FireRate -= 0.2f;
-        FireRate = Mathf.Max(0.1f, FireRate);
-        enemiesKilled = 0;
-
-        if (Level <= 10)
-        {
-            UpdateInfo(Level, 10, enemiesKilled, Health);
+            Debug.Log("¡Has perdido! Tu vida ha llegado a 0.");
+            RestartGame();
         }
         else
         {
-            Debug.Log("¡El jugador ha ganado!");
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+            {
+                if (Force >= situation1.ForceRequired && Skill >= situation1.RequiredSkill)
+                {
+                    situation1.ShowText();
+                }
+                else
+                {
+                    Debug.Log("No tienes los requisitos necesarios para esta opción.");
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                if (Force >= situation2.ForceRequired && Skill >= situation2.RequiredSkill)
+                {
+                    situation2.ShowText();
+                }
+                else
+                {
+                    Debug.Log("No tienes los requisitos necesarios para esta opción.");
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.Alpha3))
+            {
+                if (Force >= situation3.ForceRequired && Skill >= situation3.RequiredSkill)
+                {
+                    situation3.ShowText();
+                }
+                else
+                {
+                    Debug.Log("No tienes los requisitos necesarios para esta opción.");
+                }
+            }
+
+            // Resto del código para manejar las opciones del jugador
         }
     }
 
-    public void EnemyKilled()
+    void RestartGame()
     {
-        enemiesKilled++;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
 
-        if (enemiesKilled >= 100 || Level >= 10)
+    void UpdateInfo()
+    {
+        playerNameText.text = "Name: " + Name;
+        playerStatsText.text = "Force: " + Force + " | Skill: " + Skill + " | Life: " + Life;
+    }
+
+    public override void CreateCharacter(int force, int skill, int life)
+    {
+        if (force + skill + life <= 100)
         {
-            Debug.Log("¡El jugador ha ganado!");
+            Name = "Player";
+            Force = force;
+            Skill = skill;
+            Life = life;
+        }
+        else
+        {
+            Debug.LogError("The sum of strength, dexterity and life must not be greater than 100.");
         }
     }
+
+    void AlcanzarFinal()
+    {
+        finalesAlcanzados++;
+
+        if (finalesAlcanzados >= 3)
+        {
+            MostrarFinalDelJuego();
+        }
+    }
+    void MostrarFinalDelJuego()
+    {
+        Debug.Log("¡Has alcanzado los tres finales diferentes!");
+        SceneManager.LoadScene("FinalScene");
+    }
+
 }
